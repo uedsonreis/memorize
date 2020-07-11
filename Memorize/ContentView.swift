@@ -9,42 +9,55 @@
 import SwiftUI
 
 struct ContentView: View {
+    
+    @ObservedObject var viewModel: EmojiMemoryGame = EmojiMemoryGame()
+    
     var body: some View {
-        VStack {
-            ForEach(0..<4) { line in
-                LineOfCard(numberOfCols: 4)
+        
+//        let numberOfLine = 2
+//        let numberOfCol = self.viewModel.cards.count / numberOfLine
+        
+        return HStack {
+            ForEach(self.viewModel.cards) { card in
+                CardView(card: card).onTapGesture {
+                    self.viewModel.choose(card: card)
+                }
             }
         }
         .foregroundColor(Color.orange)
-        .font(Font.largeTitle)
         .padding()
     }
 }
 
-struct LineOfCard: View {
-    var numberOfCols: Int
+struct CardView: View {
+    var card: MemoryGame<String>.Card
     
     var body: some View {
-        HStack {
-            ForEach(0..<numberOfCols) { col in
-                Card(isFaceUp: true)
-            }
-        }
+        GeometryReader(content: { geometry in
+            self.body(for: geometry.size)
+        })
     }
-}
-
-struct Card: View {
-    var isFaceUp: Bool
     
-    var body: some View {
+    func body(for size: CGSize) -> some View {
         ZStack {
-            if isFaceUp {
-                RoundedRectangle(cornerRadius: 10.0).stroke(lineWidth: 3)
-                Text("👻")
+            if card.isFaceUp {
+                RoundedRectangle(cornerRadius: cornerRadius).stroke(lineWidth: edgeLineWidth)
+                Text(card.content)
             } else {
-                RoundedRectangle(cornerRadius: 10.0).fill()
+                RoundedRectangle(cornerRadius: cornerRadius).fill()
             }
         }
+        .font(Font.system(size: fontSize(for: size)))
+    }
+    
+    // MARK: - Drawing Constants
+    
+    let cornerRadius: CGFloat = 10.0
+    let edgeLineWidth: CGFloat = 3
+    let fontScaleFactor: CGFloat = 0.75
+    
+    func fontSize(for size: CGSize) -> CGFloat {
+        min(size.width, size.height) * fontScaleFactor
     }
 }
 
